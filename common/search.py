@@ -63,17 +63,15 @@ def service_model_search(model_class, query):
     '''given a Model Class and a query string, searches the model class
     table. Assumes the model class has "search_atributes", "search_joins"
     and "search_representative"'''
-    query= "%"+query.replace(" ", "%")+"%"
-    
+
     atributes= model_class.search_atributes
     join_models= getattr(model_class, "search_joins", [])
     representative= getattr(model_class, "search_representative", None)
 
     joins= map(joinedload, join_models)
-    atributes_likes= [getattr(model_class, atr).ilike(query) for atr in atributes]
+    atributes_likes= [getattr(model_class, atr).match(query) for atr in atributes]
 
     results= model_class.query.options(*joins).filter(or_(*atributes_likes)).all()
     if representative:
         results= [getattr(r,representative) for r in results]
     return results
-    
